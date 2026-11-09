@@ -1,0 +1,3 @@
+# Never convert line endings: every checkout must match the commit byte for byte, because
+# `make check-toolkit` / `check-common` compare file hashes and the shell scripts need LF.
+* -text
