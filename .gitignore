@@ -1,0 +1,17 @@
+# Game data: nothing from the disc is ever committed
+Guardian Heroes (USA)/
+disc/
+extracted/
+*.bin
+*.iso
+*.cue
+*.chd
+
+# Made from the game (block database, generated C++, saves) and builds
+work/
+build/
+
+# The reference emulator `make setup` fetches, and tool leftovers
+third_party/
+__pycache__/
+.DS_Store

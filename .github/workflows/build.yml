@@ -1,0 +1,50 @@
+# Builds the port on GitHub's Windows machines, with no game: the program with no translated code (its
+# interpreter runs the game from the player's own disc image) and the launcher. Nothing from the disc is
+# in this repository, so recording and translating the game's code happen on your own PC, never here.
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            make git mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-python mingw-w64-ucrt-x86_64-sdl3 mingw-w64-ucrt-x86_64-zlib
+
+      - name: The toolkit copy is what sync-toolkit.sh recorded
+        run: make check-toolkit check-common
+
+      - name: Build the port and the launcher
+        run: make launcher
+
+      - name: Gather the programs and the DLLs they need
+        run: |
+          mkdir -p dist
+          cp build/guardianheroes/*.exe dist/
+          for exe in dist/*.exe; do
+            ldd "$exe" | awk '/\/ucrt64\// {print $3}'
+          done | sort -u | xargs -r -I{} cp {} dist/
+          ls dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: guardianheroes-windows
+          path: dist/
